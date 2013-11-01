@@ -30,10 +30,10 @@ data CBOR =   CBOR_UInt Int
             deriving (Show)
 
 majorBits :: Word8
-majorBits = 224
+majorBits = 224 -- 11100000
 
 minorBits :: Word8
-minorBits = 31
+minorBits = 31 -- 00011111
 
 unroll :: Integer -> [Word8]
 unroll = unfoldr step
