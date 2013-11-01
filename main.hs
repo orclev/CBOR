@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, BangPatterns #-}
+{-# LANGUAGE BangPatterns #-}
 import Prelude hiding (take)
 import Data.Bits
 import Data.Word
@@ -8,8 +8,6 @@ import Data.Binary.IEEE754
 import Data.List (unfoldr)
 import Control.Applicative
 import Control.Monad (replicateM)
-import Data.Attoparsec.ByteString
-import Data.Attoparsec.Combinator
 import qualified Data.ByteString as BS
 
 data CBOR =   CBOR_UInt Int
