@@ -1,4 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
+module Data.CBOR where
+
 import Prelude hiding (take)
 import Data.Bits
 import Data.Word
@@ -13,13 +15,13 @@ import Control.Applicative
 import Control.Monad (replicateM)
 import qualified Data.ByteString as BS
 
-data CBOR =   CBOR_UInt Int
-            | CBOR_SInt Int
+data CBOR =   CBOR_UInt Integer
+            | CBOR_SInt Integer
             | CBOR_BS BS.ByteString
             | CBOR_TS BS.ByteString
             | CBOR_Array [CBOR]
             | CBOR_Map [(CBOR,CBOR)]
-            | CBOR_Tag Int CBOR
+            | CBOR_Tag Integer CBOR
             | CBOR_HalfFloat Float
             | CBOR_Float Float
             | CBOR_Double Double
@@ -31,7 +33,7 @@ data CBOR =   CBOR_UInt Int
             | CBOR_False
             | CBOR_Byte Word8
             | CBOR_Stop
-            deriving (Show)
+            deriving (Show, Eq)
 
 majorBits :: Word8
 majorBits = 224 -- 11100000
@@ -109,6 +111,7 @@ getCBOR = do
     5 -> getMap
     6 -> getTag
     7 -> getOther
+    _ -> fail "Unknown CBOR type"
 
 putCBOR :: CBOR -> Put
 putCBOR (CBOR_UInt x) = putHeader 0 x
@@ -117,7 +120,7 @@ putCBOR (CBOR_BS x) = putHeader 2 (BS.length x) >> putByteString x
 putCBOR (CBOR_TS x) = putHeader 3 (BS.length x) >> putByteString x
 putCBOR (CBOR_Array x) = putHeader 4 (length x) >> mapM_ putCBOR x
 putCBOR (CBOR_Map x) = putHeader 5 (length x) >> mapM_ putPair x
-putCBOR (CBOR_Tag x y) = putHeaderBlock 6 (toInt x) >> putCBOR y 
+putCBOR (CBOR_Tag x y) = putHeader 6 x >> putCBOR y 
 putCBOR CBOR_False = putHeaderBlock 7 20
 putCBOR CBOR_True = putHeaderBlock 7 21
 putCBOR CBOR_NULL = putHeaderBlock 7 22
@@ -129,6 +132,7 @@ putCBOR (CBOR_Double x) = putHeaderBlock 7 27 >> putFloat64be x
 putCBOR (CBOR_Reserved 28) = putHeaderBlock 7 28
 putCBOR (CBOR_Reserved 29) = putHeaderBlock 7 29
 putCBOR (CBOR_Reserved 30) = putHeaderBlock 7 30
+putCBOR (CBOR_Reserved _) = fail "Invalid reserved value"
 putCBOR CBOR_Stop = putHeaderBlock 7 31
 putCBOR (CBOR_Unassigned x) = putHeaderBlock 7 (toInt x)
 

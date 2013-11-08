@@ -4,7 +4,7 @@
 name:                CBOR
 version:             0.1.0.0
 synopsis:            Encode/Decode values to/from CBOR
--- description:         
+description:         Encode/Decode values to/from CBOR
 homepage:            https://github.com/orclev/CBOR
 license:             LGPL-3
 license-file:        LICENSE
@@ -17,14 +17,33 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
-  -- exposed-modules:     
+  exposed-modules:   Data.CBOR
   -- other-modules:       
-  -- other-extensions:    
-  build-depends:       base >=4.6 && <4.7
+  -- other-extensions:
+  ghc-options:       -Wall -O2
+  build-depends:       base >=4.6 && < 5
                      , bytestring >= 0.10
                      , binary >= 0.7
                      , binary-bits >= 0.3
                      , data-binary-ieee754 >= 0.4
                        
-  -- hs-source-dirs:      
+  hs-source-dirs:    src
   default-language:    Haskell2010
+
+test-suite tests
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    test, src
+  main-is:           Suite.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.6 && < 5
+                     , bytestring >= 0.10
+                     , binary >= 0.7
+                     , binary-bits >= 0.3
+                     , data-binary-ieee754 >= 0.4
+                     , test-framework >= 0.3.3
+                     , test-framework-quickcheck2 >= 0.3
+                     , QuickCheck >= 2.6
+
+source-repository head
+  type:     git
+  location: https://github.com/orclev/CBOR.git
