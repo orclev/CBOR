@@ -29,8 +29,8 @@ getHeaderBlock = B.runBitGet . B.block $ (,) <$> B.word8 3 <*> B.word8 5
 
 -- | Writes a header byte given a type and extra data value.
 --
--- >>> runPut $ putHeaderBlock 6 22
--- "\214"
+-- >>> LBS.unpack $ runPut $ putHeaderBlock 6 22
+-- [214]
 putHeaderBlock :: Word8 -> Word8 -> Put
 putHeaderBlock a b = B.runBitPut (B.putWord8 3 a >> B.putWord8 5 b)
 
@@ -46,8 +46,8 @@ getHeader = do
 
 -- | Writes a header byte as well as an associated number of bytes indicating the size of the following data.
 --
--- >>> runPut (putHeader 0 1870300560)
--- "\SUBoz\133\144"
+-- >>> LBS.unpack $ runPut (putHeader 0 1870300560)
+-- [26,111,122,133,144]
 putHeader :: Integral a => Word8 -> a -> Put
 putHeader a b | b >= 4294967296 || b <= -4294967297 = putHeaderBlock a 27 >> putWord64be (toInt $ neg b)
               | b >= 65536 || b <= -65537 = putHeaderBlock a 26 >> putWord32be (toInt $ neg b)
@@ -95,8 +95,8 @@ getCBOR = do
 -- | Writes CBOR encoded data
 --
 -- >>> let x = CBOR_Array [CBOR_UInt 42, CBOR_Float 3.14]
--- >>> runPut (putCBOR x)
--- "\130\CAN*\250@H\245\195"
+-- >>> LBS.unpack $ runPut (putCBOR x)
+-- [130,24,42,250,64,72,245,195]
 putCBOR :: CBOR -> Put
 putCBOR (CBOR_UInt x) = putHeader 0 x
 putCBOR (CBOR_SInt x) = putHeader 1 x
