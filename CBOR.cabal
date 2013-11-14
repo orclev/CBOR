@@ -44,6 +44,18 @@ test-suite tests
                      , test-framework-quickcheck2 >= 0.3
                      , QuickCheck >= 2.6
 
+test-suite doctests
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    test, src
+  main-is:           doctests.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.6 && < 5
+                     , bytestring >= 0.10
+                     , binary >= 0.7
+                     , binary-bits >= 0.3
+                     , data-binary-ieee754 >= 0.4
+                     , doctest >= 0.9
+
 source-repository head
   type:     git
   location: https://github.com/orclev/CBOR.git

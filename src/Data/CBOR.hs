@@ -1,5 +1,10 @@
 {-# LANGUAGE BangPatterns #-}
-module Data.CBOR where
+-- | Provides functions to serialize CBOR encoded values to/from ByteStrings
+module Data.CBOR ( CBOR(..)
+                 , majorBits, minorBits
+                 , decodeType
+                 , packType, getCBOR, putCBOR, toInt
+                 ) where
 
 import Prelude hiding (take)
 import Data.Bits
@@ -10,11 +15,14 @@ import Data.Binary.Put
 import Data.Binary.IEEE754
 import qualified Data.Binary.Bits.Get as B
 import qualified Data.Binary.Bits.Put as B
-import Data.List (unfoldr)
 import Control.Applicative
 import Control.Monad (replicateM)
 import qualified Data.ByteString as BS
 
+-- $setup
+-- >>> import qualified Data.ByteString.Lazy as LBS
+
+-- | Data type for CBOR values
 data CBOR =   CBOR_UInt Integer
             | CBOR_SInt Integer
             | CBOR_BS BS.ByteString
@@ -35,56 +43,74 @@ data CBOR =   CBOR_UInt Integer
             | CBOR_Stop
             deriving (Show, Eq)
 
+-- | Bit mask for type portion of header byte
 majorBits :: Word8
 majorBits = 224 -- 11100000
 
+-- | Bit mask for extra data portion of header byte
 minorBits :: Word8
 minorBits = 31 -- 00011111
 
-unroll :: Integer -> [Word8]
-unroll = unfoldr step
-  where
-    step 0 = Nothing
-    step i = Just (fromIntegral i, i `shiftR` 8)
-
-roll :: [Word8] -> Integer
-roll   = foldr unstep 0
-  where
-    unstep b a = a `shiftL` 8 .|. fromIntegral b
-
-bitShiftOr :: Int -> Int -> Int
-{-# INLINE bitShiftOr #-}
-bitShiftOr a x = (a `shiftL` 8) .|. x
-
+-- | Parses a CBOR header byte to extract the type and extra data
+--
+-- >>> decodeType 214
+-- (6,22)
 decodeType :: Word8 -> (Word8, Word8)
 decodeType x = (x `shiftR` 5, x .&. minorBits)
 
+-- | Takes a tuple containing a type and extra data value and packs them into a CBOR header byte
+--
+-- >>> packType (6,22)
+-- 214
 packType :: (Word8, Word8) -> Word8
 packType (mt, eb) = mt' .|. eb'
   where
     mt' = (mt `shiftL` 5) .&. majorBits
     eb' = eb .&. minorBits
 
+-- | Reads a header byte and parses it into a tuple of type and extra data values.
+--
+-- >>> let x = LBS.pack [214]
+-- >>> runGet getHeaderBlock x
+-- (6,22)
 getHeaderBlock :: Get (Word8, Word8)
 getHeaderBlock = B.runBitGet . B.block $ (,) <$> B.word8 3 <*> B.word8 5
 
+-- | Writes a header byte given a type and extra data value.
+--
+-- >>> runPut $ putHeaderBlock 6 22
+-- "\214"
 putHeaderBlock :: Word8 -> Word8 -> Put
 putHeaderBlock a b = B.runBitPut (B.putWord8 3 a >> B.putWord8 5 b)
 
+-- | Reads a header byte as well as any associated size data contained in the following bytes.
+--
+-- >>> let x = LBS.pack [26,111,122,133,144]
+-- >>> runGet getHeader x
+-- (0,1870300560)
 getHeader :: Integral a => Get (Word8, a)
 getHeader = do
   (a, b) <- getHeaderBlock
   ((,) a) <$> getSize b
 
+-- | Writes a header byte as well as an associated number of bytes indicating the size of the following data.
+--
+-- >>> runPut (putHeader 0 1870300560)
+-- "\SUBoz\133\144"
 putHeader :: Integral a => Word8 -> a -> Put
 putHeader a b | b >= 4294967296 || b <= -4294967297 = putHeaderBlock a 27 >> putWord64be (toInt $ neg b)
               | b >= 65536 || b <= -65537 = putHeaderBlock a 26 >> putWord32be (toInt $ neg b)
               | b >= 256 || b <= -257 = putHeaderBlock a 25 >> putWord16be (toInt $ neg b)
               | b >= 24 || b <= -25 = putHeaderBlock a 24 >> putWord8 (toInt $ neg b)
-              | b < 24 || b > -25 = putHeaderBlock a (toInt $ neg b)
+              | otherwise = putHeaderBlock a (toInt $ neg b)
   where
     neg x = if x < 0 then (x + 1) * (-1) else x 
 
+-- | Reads an appropriate number of bytes for the extra data provided as the first argument.
+--
+-- >>> let x = LBS.pack [111,122,133,144]
+-- >>> runGet (getSize 26) x
+-- 1870300560
 getSize :: Integral a => Word8 -> Get a
 getSize 31 = return $ -1
 getSize 30 = fail "Additional information of 30 undefined for this type."
@@ -96,9 +122,19 @@ getSize 25 = toInt <$> getWord16be
 getSize 24 = toInt <$> getWord8
 getSize x = return $ toInt x
 
+-- | Convenience function to coerce one kind of integral into another
+--
+-- >>> let x = 42 :: Word8
+-- >>> toInt x :: Int
+-- 42
 toInt :: (Integral a, Num b) => a -> b
 toInt = fromInteger . toInteger
 
+-- | Reads CBOR encoded data
+--
+-- >>> let x = LBS.pack [26,111,122,133,144]
+-- >>> runGet getCBOR x
+-- CBOR_UInt 1870300560
 getCBOR :: Get CBOR
 getCBOR = do
   (x, _) <- lookAhead getHeaderBlock
@@ -113,6 +149,11 @@ getCBOR = do
     7 -> getOther
     _ -> fail "Unknown CBOR type"
 
+-- | Writes CBOR encoded data
+--
+-- >>> let x = CBOR_Array [CBOR_UInt 42, CBOR_Float 3.14]
+-- >>> runPut (putCBOR x)
+-- "\130\CAN*\250@H\245\195"
 putCBOR :: CBOR -> Put
 putCBOR (CBOR_UInt x) = putHeader 0 x
 putCBOR (CBOR_SInt x) = putHeader 1 x
