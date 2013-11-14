@@ -17,8 +17,8 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
-  exposed-modules:   Data.CBOR
-  -- other-modules:       
+  exposed-modules:   Data.CBOR, Data.Binary.CBOR
+  other-modules:     Data.CBOR.Util
   -- other-extensions:
   ghc-options:       -Wall -O2
   build-depends:       base >=4.6 && < 5

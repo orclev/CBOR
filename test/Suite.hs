@@ -3,6 +3,8 @@ import Test.QuickCheck
 import qualified Data.ByteString as BS
 import Data.Word
 import Data.CBOR
+import Data.CBOR.Util
+import Data.Binary.CBOR
 import Test.Framework
 import Test.QuickCheck.Property
 import Test.Framework.Providers.QuickCheck2
