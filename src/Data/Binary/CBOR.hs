@@ -9,7 +9,8 @@ import Data.Word
 import Data.Binary
 import Data.Binary.Get
 import Data.Binary.Put
-import Data.Binary.IEEE754
+import Data.Binary.IEEE754 hiding (getFloat16be)
+import Data.Binary.IEEE754.HalfFloat
 import qualified Data.Binary.Bits.Get as B
 import qualified Data.Binary.Bits.Put as B
 import Control.Applicative
@@ -110,7 +111,7 @@ putCBOR CBOR_True = putHeaderBlock 7 21
 putCBOR CBOR_NULL = putHeaderBlock 7 22
 putCBOR CBOR_Undefined = putHeaderBlock 7 23
 putCBOR (CBOR_Byte x) = putHeaderBlock 7 24 >> putWord8 x
-putCBOR (CBOR_HalfFloat x) = putHeaderBlock 7 25 >> putFloat32be x -- TODO: Make putFloat16be
+putCBOR (CBOR_HalfFloat x) = putHeaderBlock 7 25 >> putFloat16be x
 putCBOR (CBOR_Float x) = putHeaderBlock 7 26 >> putFloat32be x
 putCBOR (CBOR_Double x) = putHeaderBlock 7 27 >> putFloat64be x 
 putCBOR (CBOR_Reserved 28) = putHeaderBlock 7 28

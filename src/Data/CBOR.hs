@@ -1,6 +1,7 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, GeneralizedNewtypeDeriving #-}
 -- | Provides functions to serialize CBOR encoded values to/from ByteStrings
 module Data.CBOR ( CBOR(..)
+                 , HalfFloat(..)
                  ) where
 
 import Data.Word
@@ -14,7 +15,7 @@ data CBOR =   CBOR_UInt Integer
             | CBOR_Array [CBOR]
             | CBOR_Map [(CBOR,CBOR)]
             | CBOR_Tag Integer CBOR
-            | CBOR_HalfFloat Float -- TODO: This should be a half float type
+            | CBOR_HalfFloat HalfFloat
             | CBOR_Float Float
             | CBOR_Double Double
             | CBOR_NULL
@@ -27,4 +28,8 @@ data CBOR =   CBOR_UInt Integer
             | CBOR_Stop
             deriving (Show, Eq)
 
--- TODO: define show instance for CBOR
+newtype HalfFloat = HF Word16 -- Opaque value, actual implementation TODO
+  deriving (Eq, Ord)
+
+instance Show HalfFloat where
+  show (HF _) = "HalfFloat" -- N.B. We don't really support rendering of half width floats

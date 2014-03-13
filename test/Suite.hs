@@ -6,7 +6,7 @@ import Data.CBOR
 import Data.CBOR.Util
 import Data.Binary.CBOR
 import Test.Framework
-import Test.QuickCheck.Property
+-- import Test.QuickCheck.Property
 import Test.Framework.Providers.QuickCheck2
 import Data.Binary.Get (runGet)
 import Data.Binary.Put (runPut)
@@ -18,10 +18,12 @@ main :: IO ()
 main = defaultMain tests
 -- main = defaultMainWithOpts tests runnerOptions
 
+runnerOptions :: RunnerOptions' Maybe
 runnerOptions = mempty {
     ropt_test_options = Just testOptions
   }
 
+testOptions :: TestOptions' Maybe
 testOptions = mempty {
       topt_maximum_generated_tests = Just 5
     , topt_maximum_unsuitable_generated_tests = Just 1
@@ -29,6 +31,7 @@ testOptions = mempty {
     , topt_maximum_test_depth = Just 1
   }
 
+tests :: [Test]
 tests = [testGroup "Group1" [
     testProperty "round_trip" prop_roundtrip
   ]]
@@ -36,10 +39,11 @@ tests = [testGroup "Group1" [
 prop_roundtrip :: CBOR -> Bool
 prop_roundtrip x = x == runGet getCBOR (runPut $ putCBOR x)
 
+instance Arbitrary HalfFloat where
+  arbitrary = HF <$> arbitrary
 --instance Arbitrary BS.ByteString where
 --  arbitrary :: Gen BS.ByteString
 --  arbitrary = 
-
 
 instance Arbitrary CBOR where
   arbitrary = sized sizedCBOR
@@ -51,7 +55,7 @@ sizedCBOR 0 =
       , CBOR_SInt <$> (-) (-1) <$> choose (0, toInt (maxBound :: Word64))
       , CBOR_BS <$> arbitraryByteString
       , CBOR_TS <$> arbitraryTextString
-      --, CBOR_HalfFloat <$> arbitrary -- TODO: how to decide if something needs half float precision?
+      , CBOR_HalfFloat <$> arbitrary
       , CBOR_Float <$> arbitrary
       , CBOR_Double <$> arbitrary
       , return CBOR_NULL
@@ -71,7 +75,7 @@ sizedCBOR n =
       , CBOR_Array <$> listOf1 (sizedCBOR $ n `div` 2)
       , CBOR_Map <$> listOf1 ((,) <$> (sizedCBOR $ n `div` 2) `suchThat` allowedKeyTypes <*> (sizedCBOR $ n `div` 2))
       , CBOR_Tag <$> choose (0, toInt (maxBound :: Word64)) <*> (sizedCBOR $ n `div` 2)
-      --, CBOR_HalfFloat <$> arbitrary
+      , CBOR_HalfFloat <$> arbitrary
       , CBOR_Float <$> arbitrary
       , CBOR_Double <$> arbitrary
       , return CBOR_NULL
