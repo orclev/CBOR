@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+-- | Provides Get and Put instances for the opaque HalfFloat type.
 module Data.Binary.IEEE754.HalfFloat where
 
 import Data.CBOR
