@@ -1,3 +1,5 @@
+
+[![Hackage Version](http://img.shields.io/hackage/v/CBOR.svg)](http://hackage.haskell.org/package/CBOR)
 CBOR
 ====
 
