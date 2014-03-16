@@ -1,7 +1,7 @@
 
-[![Hackage Version](http://img.shields.io/hackage/v/CBOR.svg)](http://hackage.haskell.org/package/CBOR)
 CBOR
 ====
+[![Hackage Version](http://img.shields.io/hackage/v/CBOR.svg)](http://hackage.haskell.org/package/CBOR)
 
 Haskell encoder/decoder for CBOR encoding.
 
