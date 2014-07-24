@@ -1,5 +1,5 @@
 name:                CBOR
-version:             0.1.0.0
+version:             0.1.0.1
 synopsis:            Encode/Decode values to/from CBOR
 description:         Provides a simple type to represent CBOR values as well 
                      as instances of the Get and Put classes from the binary 
