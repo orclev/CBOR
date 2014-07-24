@@ -17,12 +17,14 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
-  exposed-modules:   Data.CBOR, Data.Binary.CBOR
-  other-modules:     Data.CBOR.Util
+  exposed-modules:     Data.CBOR
+                     , Data.Binary.CBOR
+  other-modules:       Data.CBOR.Util
+                     , Data.Binary.IEEE754.HalfFloat
   ghc-options:       -Wall -O2
   build-depends:       base >=4.6 && < 5
                      , bytestring >= 0.10
-                     , binary >= 0.7
+                     , binary >= 0.6
                      , binary-bits >= 0.3
                      , data-binary-ieee754 >= 0.4
                        
@@ -31,12 +33,14 @@ library
 
 test-suite tests
   type:              exitcode-stdio-1.0
-  hs-source-dirs:    test, src
+  hs-source-dirs:    test
   main-is:           Suite.hs
   default-language:    Haskell2010
+  ghc-options:       -fhpc
   build-depends:       base >= 4.6 && < 5
                      , bytestring >= 0.10
-                     , binary >= 0.7
+                     , CBOR
+                     , binary >= 0.6
                      , binary-bits >= 0.3
                      , data-binary-ieee754 >= 0.4
                      , test-framework >= 0.3.3
@@ -45,14 +49,11 @@ test-suite tests
 
 test-suite doctests
   type:              exitcode-stdio-1.0
-  hs-source-dirs:    test, src
+  hs-source-dirs:    test
   main-is:           doctests.hs
   default-language:    Haskell2010
+  ghc-options:       -fhpc
   build-depends:       base >= 4.6 && < 5
-                     , bytestring >= 0.10
-                     , binary >= 0.7
-                     , binary-bits >= 0.3
-                     , data-binary-ieee754 >= 0.4
                      , doctest >= 0.9
 
 source-repository head

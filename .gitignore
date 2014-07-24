@@ -11,3 +11,4 @@ cabal-dev
 cabal.sandbox.config
 CBOR.sublime-project
 CBOR.sublime-workspace
+/.project
